@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import * as z from 'zod'
 import type { AuthActionResult, SignupFormValues } from '@/types/general-type'
 
@@ -69,4 +70,19 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
   redirect('/login')
+}
+
+export async function resetPassword(email: string): Promise<AuthActionResult> {
+  const supabase = await createClient()
+  const origin = (await headers()).get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
 }

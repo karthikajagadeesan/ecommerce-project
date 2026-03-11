@@ -1,18 +1,28 @@
-import React from 'react'
-import type { UserRole } from '@/types/general-type'
+import React from 'react';
+import { headers } from "next/headers";
+import DomainFinder from './domin-finder';
+import ErrorState from '@/components/error-state';
 
-interface RoleGatewayProps {
-  superadmin?: React.ReactNode
-  user?: React.ReactNode
-  fallback?: React.ReactNode
-}
+export default async function RoleGateway({
+    superadmin,
+    user,
+    fallback = <ErrorState title="Unauthorized" description="You do not have permission to access this page" />
+}: {
+    superadmin?: React.ReactNode,
+    user?: React.ReactNode,
+    fallback?: React.ReactNode
+}) {
+    // Get hostname from headers for subdomain detection
+    const hostname = (await headers()).get("host") || "";
+    const subdomain = DomainFinder(hostname);
 
-export async function RoleGateway({ superadmin, user, fallback }: RoleGatewayProps) {
-  // TODO: Replace with real role lookup from Supabase profiles table.
-  const currentRole: UserRole = 'user'
-
-  if ((currentRole as any) === 'superadmin') return <>{superadmin}</>
-  if ((currentRole as any) === 'user') return <>{user}</>
-
-  return <>{fallback ?? <div>Access Denied</div>}</>
+    if (subdomain === "superadmin" && superadmin) {
+        return <>{superadmin}</>;
+    }
+    
+    if (subdomain === "user" && user) {
+        return <>{user}</>;
+    }
+    
+    return <>{fallback}</>;
 }

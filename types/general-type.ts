@@ -1,4 +1,4 @@
-export type UserRole = 'superadmin' | 'user'
+export type Subdomain = 'superadmin' | 'user'
 
 export interface Anchor {
   id: string

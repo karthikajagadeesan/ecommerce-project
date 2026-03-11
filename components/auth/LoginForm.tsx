@@ -51,7 +51,7 @@ export function LoginForm() {
       return
     }
 
-    router.push('/dashboard/user')
+    router.push('/')
     router.refresh()
   }
 
@@ -93,6 +93,9 @@ export function LoginForm() {
                         {...field}
                       />
                       <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                       >
