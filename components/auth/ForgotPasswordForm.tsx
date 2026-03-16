@@ -22,8 +22,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { resetPassword } from '@/app/actions/auth-actions'
-import { CheckCircle2 } from 'lucide-react'
-import { Alert, AlertDescription } from '../ui/alert'
+import { CheckCircle2, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -44,14 +44,23 @@ export function ForgotPasswordForm() {
 
   async function onSubmit(data: ForgotPasswordValues) {
     setError(null)
-    const result = await resetPassword(data.email)
-    
-    if (result?.error) {
-      setError(result.error)
-      return
-    }
+    const toastId = toast.loading('Sending link...')
+    try {
+      const result = await resetPassword(data.email)
+      
+      if (result?.error) {
+        setError(result.error)
+        toast.error(result.error, { id: toastId })
+        return
+      }
 
-    setIsSubmitted(true)
+      setIsSubmitted(true)
+      toast.success('Reset link sent to your email!', { id: toastId })
+    } catch (err: any) {
+      const message = err.message || 'An unexpected error occurred'
+      setError(message)
+      toast.error(message, { id: toastId })
+    }
   }
 
   if (isSubmitted) {
@@ -79,11 +88,6 @@ export function ForgotPasswordForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -104,10 +108,14 @@ export function ForgotPasswordForm() {
               className="w-full"
               disabled={form.formState.isSubmitting}
             >
-              {form.formState.isSubmitting && (
-                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+              {form.formState.isSubmitting ? (
+                <>
+                  Sending link
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                'Send Reset Link'
               )}
-              Send Reset Link
             </Button>
           </form>
         </Form>

@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 import { useState } from 'react'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { SignupFormValues } from '@/types/general-type'
 
 import { Button } from "@/components/ui/button"
@@ -43,29 +44,34 @@ export function SignupForm() {
   })
 
   async function onSubmit(data: SignupFormValues) {
-    const { error } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: {
-          full_name: data.name,
+    const toastId = toast.loading('Creating account...')
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.name,
+          },
         },
-      },
-    })
+      })
 
-    if (error) {
-      alert(error.message)
-      return
+      if (error) {
+        toast.error(error.message, { id: toastId })
+        return
+      }
+
+      toast.success('Check your email for confirmation!', { id: toastId })
+      router.push('/login')
+    } catch (err: any) {
+      toast.error(err.message || 'An unexpected error occurred', { id: toastId })
     }
-
-    alert('Check your email for confirmation!')
-    router.push('/login')
   }
 
   return (
     <Card className="w-full">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">Create an account</CardTitle>
+        <CardTitle className="text-lg text-center">Create an account</CardTitle>
         <CardDescription className="text-center">
           Enter your details below to create your account.
         </CardDescription>
@@ -133,8 +139,14 @@ export function SignupForm() {
               )}
             />
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign Up
+              {form.formState.isSubmitting ? (
+                <>
+                  Creating account
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                'Sign Up'
+              )}
             </Button>
           </form>
         </Form>

@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import SuperadminDashboard from './superadmin';
 import UserDashboard from './user';
-import { RoleGateway } from '@/helper/role-gateway';
+import  RoleGateway  from '@/helper/role-gateway';
 import { LoadingState } from '@/components/loading-state';
 
 export default async function DashboardPage() {

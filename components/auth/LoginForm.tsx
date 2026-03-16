@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 import { useState } from 'react'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { LoginFormValues } from '@/types/general-type'
 
 import { Button } from "@/components/ui/button"
@@ -31,6 +32,7 @@ export function LoginForm() {
   const router = useRouter()
   const supabase = createClient()
   const [showPassword, setShowPassword] = useState(false)
+  const [errorStatus, setErrorStatus] = useState<string | null>(null)
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -41,24 +43,34 @@ export function LoginForm() {
   })
 
   async function onSubmit(data: LoginFormValues) {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    })
+    setErrorStatus(null)
+    const toastId = toast.loading('Logging in...')
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      })
 
-    if (error) {
-      alert(error.message)
-      return
+      if (error) {
+        setErrorStatus(error.message)
+        toast.error(error.message, { id: toastId })
+        return
+      }
+
+      toast.success('Successfully logged in!', { id: toastId })
+      router.push('/')
+      router.refresh()
+    } catch (err: any) {
+      const message = err.message || 'An unexpected error occurred'
+      setErrorStatus(message)
+      toast.error(message, { id: toastId })
     }
-
-    router.push('/')
-    router.refresh()
   }
 
   return (
     <Card className="w-full">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">Login</CardTitle>
+        <CardTitle className="text-lg text-center">Login</CardTitle>
         <CardDescription className="text-center">
           Enter your email and password to log in.
         </CardDescription>
@@ -84,7 +96,15 @@ export function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Password</FormLabel>
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm font-medium text-primary hover:underline underline-offset-4"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -112,9 +132,15 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign In
+             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? (
+                <>
+                  Logging in...
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                'Login'
+              )}
             </Button>
           </form>
         </Form>
@@ -126,7 +152,7 @@ export function LoginForm() {
             href="/signup"
             className="text-primary underline-offset-4 transition-colors hover:underline"
           >
-            Sign up
+            Sign Up
           </Link>
         </div>
       </CardFooter>
