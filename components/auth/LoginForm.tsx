@@ -1,6 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -9,6 +8,8 @@ import { useState } from 'react'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { LoginFormValues } from '@/types/general-type'
+import { signIn } from "@/app/actions/auth-actions"
+import { useMutation } from '@tanstack/react-query'
 
 import { Button } from "@/components/ui/button"
 import {
@@ -30,7 +31,6 @@ const loginSchema = z.object({
 
 export function LoginForm() {
   const router = useRouter()
-  const supabase = createClient()
   const [showPassword, setShowPassword] = useState(false)
   const [errorStatus, setErrorStatus] = useState<string | null>(null)
 
@@ -42,50 +42,51 @@ export function LoginForm() {
     },
   })
 
-  async function onSubmit(data: LoginFormValues) {
-    setErrorStatus(null)
-    const toastId = toast.loading('Logging in...')
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      })
-
-      if (error) {
-        setErrorStatus(error.message)
-        toast.error(error.message, { id: toastId })
+  const loginMutation = useMutation({
+    mutationFn: (data: LoginFormValues) => signIn(data),
+    onSuccess: (result) => {
+      if (result.error) {
+        setErrorStatus(result.error)
+        toast.error(result.error)
         return
       }
 
-      toast.success('Successfully logged in!', { id: toastId })
-      router.push('/')
-      router.refresh()
-    } catch (err: any) {
-      const message = err.message || 'An unexpected error occurred'
-      setErrorStatus(message)
-      toast.error(message, { id: toastId })
+      toast.success('Successfully logged in!')
+      if (result.redirectTo) {
+        router.push(result.redirectTo)
+        router.refresh()
+      }
+    },
+    onError: (err: any) => {
+      setErrorStatus(err.message || 'An unexpected error occurred')
+      toast.error(err.message || 'Login failed')
     }
+  })
+
+  async function onSubmit(data: LoginFormValues) {
+    setErrorStatus(null)
+    loginMutation.mutate(data)
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full border-2 border-primary/10 shadow-xl bg-card/50 backdrop-blur-sm">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-lg text-center">Login</CardTitle>
-        <CardDescription className="text-center">
-          Enter your email and password to log in.
+        <CardTitle className="text-2xl font-black text-center tracking-tighter uppercase">Welcome Back</CardTitle>
+        <CardDescription className="text-center font-medium">
+          Enter your details below to log in to your account.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-xs font-bold uppercase tracking-widest opacity-70">Email Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
+                    <Input placeholder="name@example.com" {...field} className="h-12 bg-background/50 border-2" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -97,10 +98,10 @@ export function LoginForm() {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between">
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest opacity-70">Password</FormLabel>
                     <Link
                       href="/forgot-password"
-                      className="text-sm font-medium text-primary hover:underline underline-offset-4"
+                      className="text-xs font-bold text-primary hover:underline underline-offset-4"
                     >
                       Forgot your password?
                     </Link>
@@ -111,6 +112,7 @@ export function LoginForm() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         {...field}
+                         className="h-12 bg-background/50 border-2 pr-12"
                       />
                       <Button
                         type="button"
@@ -120,11 +122,10 @@ export function LoginForm() {
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          <EyeOff className="h-5 w-5 text-muted-foreground" />
                         ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
+                          <Eye className="h-5 w-5 text-muted-foreground" />
                         )}
-                        <span className="sr-only">Toggle password visibility</span>
                       </Button>
                     </div>
                   </FormControl>
@@ -132,8 +133,8 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? (
+             <Button type="submit" className="w-full h-12 text-md font-black uppercase tracking-[0.1em] rounded-full shadow-lg transition-all active:scale-95" disabled={loginMutation.isPending}>
+              {loginMutation.isPending ? (
                 <>
                   Logging in...
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
@@ -145,12 +146,12 @@ export function LoginForm() {
           </form>
         </Form>
       </CardContent>
-      <CardFooter className="flex flex-wrap items-center justify-center gap-2">
-        <div className="text-sm text-muted-foreground">
+      <CardFooter className="flex flex-wrap items-center justify-center gap-2 border-t pt-6">
+        <div className="text-sm font-medium text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            className="text-primary underline-offset-4 transition-colors hover:underline"
+            className="text-primary font-bold underline-offset-4 transition-colors hover:underline"
           >
             Sign Up
           </Link>

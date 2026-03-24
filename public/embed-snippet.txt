@@ -1,0 +1,13 @@
+<!-- S22 eCommerce Widget Integration Script -->
+
+<!-- 1. Copy and paste the configuration script into the <head> or at the bottom of <body> -->
+<script>
+  window.S22EcommerceConfig = {
+    projectId: "57a38032-de4f-433b-9fd7-21ad7935fdc4",
+    token: "48787cf6-fdec-4cd2-b170-caaf1777b807",
+    domain: "https://dropin-chatbot.vercel.app" // Change this to your actual ecommerce domain URL
+  };
+</script>
+
+<!-- 2. Copy and paste the widget loader script to activate the full eCommerce workflow -->
+<script src="https://dropin-chatbot.vercel.app/widget.js" defer></script>

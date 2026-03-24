@@ -1,11 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { Database } from '@/types/database-type'
+import { Database, Tables } from '@/types/database-type'
 import { redirect } from 'next/navigation'
 import { createClient } from './server'
-import DomainFinder from '@/helper/domin-finder'
 
-const AUTH_PATHS = ['/login', '/signup', '/forgot-password','/reset-password']
+const AUTH_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password']
+const PROTECTED_PATHS = ['/dashboard', '/membership', '/payment', '/license']
 
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
@@ -31,9 +31,11 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    const pathname = request.nextUrl.pathname;
-    const hostname = request.headers.get("host") || request.nextUrl.hostname;
-    const subdomain = DomainFinder(hostname)
+    const { data: { user } } = await supabase.auth.getUser()
+
+    const pathname = request.nextUrl.pathname
+    const isAuthPath = AUTH_PATHS.some((path) => pathname.startsWith(path))
+    const isProtectedPath = PROTECTED_PATHS.some((path) => pathname.startsWith(path))
 
     // Handle Auth Callback (Code Exchange)
     if (pathname === '/auth/callback') {
@@ -42,53 +44,53 @@ export async function updateSession(request: NextRequest) {
             await supabase.auth.exchangeCodeForSession(code)
             const next = request.nextUrl.searchParams.get('next') || '/'
             const response = NextResponse.redirect(new URL(next, request.url))
-            // If redirecting to reset-password, set a temporary cookie to allow access once
-            if (next.startsWith('/reset-password')) {
-                response.cookies.set('reset_allowed', 'true', { maxAge: 300, path: '/' })
-            }
-            // Copy cookies from supabaseResponse to the redirect response
             supabaseResponse.cookies.getAll().forEach(c => response.cookies.set(c.name, c.value, c))
             return response
         }
     }
 
-    const isAuthPath = AUTH_PATHS.some((path) => pathname.startsWith(path))
+    // 1. Landing Page (/) is ALWAYS accessible
+    if (pathname === '/') {
+        return supabaseResponse
+    }
 
-    if (subdomain === "superadmin" || subdomain === "user") {
-        const { data } = await supabase.auth.getUser();
-        const user = data?.user;
+    // 2. Auth Flow Redirections
+    if (user) {
+        // Safe Read: The cookie acts as a persistent fallback if DB/auth calls fail logic gating
+        const hasMembershipCookie = request.cookies.get('s22_membership')?.value === 'true';
+        const hasMembership = user.user_metadata?.membership_selected === true || hasMembershipCookie;
 
-        if (isAuthPath && user) {
-            // Special exception for reset-password: only allow if they have the temporary cookie
-            if (pathname === '/reset-password') {
-                if (request.cookies.get('reset_allowed')) {
-                    // Allow access and consume the cookie
-                    supabaseResponse.cookies.delete('reset_allowed')
-                    return supabaseResponse
-                }
+        // If logged in and trying to go to login/signup, redirect to dashboard/check progress
+        if (isAuthPath) {
+            if (hasMembership) {
+                return NextResponse.redirect(new URL('/dashboard', request.url))
+            } else {
+                return NextResponse.redirect(new URL('/membership', request.url))
             }
-            return NextResponse.redirect(new URL('/', request.url))
         }
 
-        // Explicitly block guests from /reset-password even though it's an AUTH_PATH
-        if (pathname === '/reset-password' && !user) {
-            return NextResponse.redirect(new URL('/login', request.url))
-        }
-        
-        if (pathname === '/') {
-            if (!user) {
-                return NextResponse.redirect(new URL('/login', request.url))
+        // 3. Progress Gating
+        if (isProtectedPath) {
+            // Block /payment if no plan selected
+            if (pathname === '/payment' && !hasMembership) {
+                return NextResponse.redirect(new URL('/membership', request.url))
             }
-            return supabaseResponse
+
+            // Block /dashboard and /license if no active plan
+            if ((pathname === '/dashboard' || pathname === '/license') && !hasMembership) {
+                return NextResponse.redirect(new URL('/membership', request.url))
+            }
         }
-        
-        if (!user && !isAuthPath) {
+    } else {
+        // 4. Guest Redirections
+        if (isProtectedPath) {
             return NextResponse.redirect(new URL('/login', request.url))
         }
     }
 
-    return supabaseResponse;
+    return supabaseResponse
 }
+
 export async function requireAuth(): Promise<void> {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -98,5 +100,5 @@ export async function requireAuth(): Promise<void> {
 export async function redirectIfAuthenticated(): Promise<void> {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) redirect("/");
+    if (user) redirect("/dashboard");
 }

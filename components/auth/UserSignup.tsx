@@ -1,6 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -9,6 +8,8 @@ import { useState } from 'react'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { SignupFormValues } from '@/types/general-type'
+import { signUp } from "@/app/actions/auth-actions"
+import { useMutation } from '@tanstack/react-query'
 
 import { Button } from "@/components/ui/button"
 import {
@@ -31,7 +32,6 @@ const signupSchema = z.object({
 
 export function SignupForm() {
   const router = useRouter()
-  const supabase = createClient()
   const [showPassword, setShowPassword] = useState(false)
 
   const form = useForm<SignupFormValues>({
@@ -43,50 +43,48 @@ export function SignupForm() {
     },
   })
 
-  async function onSubmit(data: SignupFormValues) {
-    const toastId = toast.loading('Creating account...')
-    try {
-      const { error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            full_name: data.name,
-          },
-        },
-      })
-
-      if (error) {
-        toast.error(error.message, { id: toastId })
+  const signupMutation = useMutation({
+    mutationFn: (data: SignupFormValues) => signUp(data),
+    onSuccess: (result) => {
+      if (result.error) {
+        toast.error(result.error)
         return
       }
 
-      toast.success('Check your email for confirmation!', { id: toastId })
-      router.push('/login')
-    } catch (err: any) {
-      toast.error(err.message || 'An unexpected error occurred', { id: toastId })
+      toast.success('Registration successful!')
+      if (result.redirectTo) {
+        router.push(result.redirectTo)
+        router.refresh()
+      }
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'An unexpected error occurred')
     }
+  })
+
+  async function onSubmit(data: SignupFormValues) {
+    signupMutation.mutate(data)
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full border-2 border-primary/10 shadow-xl bg-card/50 backdrop-blur-sm">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-lg text-center">Create an account</CardTitle>
-        <CardDescription className="text-center">
-          Enter your details below to create your account.
-        </CardDescription>
+        <CardTitle className="text-md font-black text-center tracking-tighter"> Create your account to unlock premium layouts.</CardTitle>
+        {/* <CardDescription className="text-center font-medium">
+          Create your account to unlock premium layouts.
+        </CardDescription> */}
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel className="text-xs font-bold uppercase tracking-widest opacity-70">Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input placeholder="John Doe" {...field} className="h-12 bg-background/50 border-2" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -97,9 +95,9 @@ export function SignupForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-xs font-bold uppercase tracking-widest opacity-70">Email Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
+                    <Input placeholder="name@example.com" {...field} className="h-12 bg-background/50 border-2" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -110,13 +108,14 @@ export function SignupForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-xs font-bold uppercase tracking-widest opacity-70">Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         {...field}
+                        className="h-12 bg-background/50 border-2 pr-12"
                       />
                       <Button
                         type="button"
@@ -126,11 +125,10 @@ export function SignupForm() {
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          <EyeOff className="h-5 w-5 text-muted-foreground" />
                         ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
+                          <Eye className="h-5 w-5 text-muted-foreground" />
                         )}
-                        <span className="sr-only">Toggle password visibility</span>
                       </Button>
                     </div>
                   </FormControl>
@@ -138,8 +136,8 @@ export function SignupForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? (
+            <Button type="submit" className="w-full h-12 text-md font-black uppercase tracking-[0.1em] rounded-full shadow-lg transition-all active:scale-95" disabled={signupMutation.isPending}>
+              {signupMutation.isPending ? (
                 <>
                   Creating account
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
@@ -151,12 +149,12 @@ export function SignupForm() {
           </form>
         </Form>
       </CardContent>
-      <CardFooter className="flex flex-wrap items-center justify-center gap-2">
-        <div className="text-sm text-muted-foreground">
+      <CardFooter className="flex flex-wrap items-center justify-center gap-2 border-t pt-6">
+        <div className="text-sm font-medium text-muted-foreground">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="text-primary underline-offset-4 transition-colors hover:underline"
+            className="text-primary font-bold underline-offset-4 transition-colors hover:underline"
           >
             Login
           </Link>

@@ -2,10 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
 import * as z from 'zod'
-import type { AuthActionResult, SignupFormValues } from '@/types/general-type'
+import { SignupFormValues, AuthActionResult } from '@/types/general-type'
+import { Tables } from '@/types/database-type'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -20,69 +19,123 @@ const signupSchema = z.object({
 
 export async function signIn(
   formData: z.infer<typeof loginSchema>
-): Promise<AuthActionResult> {
-  const supabase = await createClient()
+): Promise<AuthActionResult & { redirectTo?: string }> {
+  try {
+    const supabase = await createClient()
 
-  const validation = loginSchema.safeParse(formData)
-  if (!validation.success) {
-    return { error: 'Invalid input' }
+    const validation = loginSchema.safeParse(formData)
+    if (!validation.success) {
+      return { error: 'Invalid input' }
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword(validation.data)
+    const user = data?.user
+
+    if (error || !user) {
+      return { error: error?.message || 'Login failed' }
+    }
+
+    // Check membership status from membership table
+    const { data: profile } = await (supabase
+      .from('profiles')
+      .select('id')
+      .eq('auth_user_id', user.id)
+      .single() as Promise<{ data: Pick<Tables<'profiles'>, 'id'> | null, error: any }>)
+
+    const { data: membership } = profile ? await supabase
+      .from('membership')
+      .select('*')
+      .eq('profile_id', profile.id)
+      .single() : { data: null }
+
+    revalidatePath('/', 'layout')
+    
+    if (membership) {
+      return { success: true, redirectTo: '/dashboard' }
+    } else {
+      return { success: true, redirectTo: '/membership' }
+    }
+  } catch (err: any) {
+    return { error: err.message || 'An unexpected error occurred' }
   }
-
-  const { error } = await supabase.auth.signInWithPassword(validation.data)
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath('/', 'layout')
-  redirect('/')
 }
 
 export async function signUp(
   formData: SignupFormValues
-): Promise<AuthActionResult> {
-  const supabase = await createClient()
+): Promise<AuthActionResult & { redirectTo?: string }> {
+  try {
+    const supabase = await createClient()
 
-  const validation = signupSchema.safeParse(formData)
-  if (!validation.success) {
-    return { error: 'Invalid input' }
-  }
+    const validation = signupSchema.safeParse(formData)
+    if (!validation.success) {
+      return { error: 'Invalid input' }
+    }
 
-  const { error } = await supabase.auth.signUp({
-    email: validation.data.email,
-    password: validation.data.password,
-    options: {
-      data: {
-        full_name: validation.data.name,
+    const { data, error } = await supabase.auth.signUp({
+      email: validation.data.email,
+      password: validation.data.password,
+      options: {
+        data: {
+          full_name: validation.data.name,
+        },
       },
-    },
-  })
+    })
+    
+    const user = data?.user
+    const session = data?.session
 
-  if (error) {
-    return { error: error.message }
+    if (error || !user) {
+      return { error: error?.message || 'Registration failed' }
+    }
+
+    // Ensure profile is created with Service Role to bypass Postgres RLS Insert restrictions
+    try {
+      const { createAdminClient } = await import('@/lib/supabase/admin');
+      const adminAuth = createAdminClient();
+      const { error: profileError } = await adminAuth.from('profiles').upsert({
+        auth_user_id: user.id,
+        name: validation.data.name,
+        email: validation.data.email,
+        status: 'active'
+      }, { onConflict: 'auth_user_id' });
+      if (profileError) {
+        console.error("Failed to insert profile record:", profileError);
+      }
+    } catch (e: any) {
+      console.warn("Service Role Auth Not Configured for profile creation:", e.message);
+    }
+
+    if (!session) {
+      // Supabase email confirmation is enabled and the user needs to check their inbox!
+      return { error: 'Please check your email to verify your account.' }
+    }
+
+    revalidatePath('/', 'layout')
+    return { success: true, redirectTo: '/membership' }
+  } catch (err: any) {
+    return { error: err.message || 'An unexpected error occurred' }
   }
-
-  revalidatePath('/', 'layout')
-  return { success: true }
 }
 
-export async function signOut(): Promise<void> {
+export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
-  redirect('/login')
 }
 
 export async function resetPassword(email: string): Promise<AuthActionResult> {
-  const supabase = await createClient()
-  const origin = (await headers()).get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=/reset-password`,
-  })
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/reset-password`,
+    })
 
-  if (error) {
-    return { error: error.message }
+    if (error) {
+      return { error: error.message }
+    }
+
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message || 'An unexpected error occurred' }
   }
-
-  return { success: true }
 }
