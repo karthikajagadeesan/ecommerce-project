@@ -25,7 +25,7 @@ export async function selectPlan(plan: 'basic' | 'pro' | 'enterprise') {
       const { createAdminClient } = await import('@/lib/supabase/admin');
       const adminAuth = createAdminClient();
       
-      const { error: membershipError } = await adminAuth.from('user_membership').upsert({
+      const { error: membershipError } = await (adminAuth.from('user_membership') as any).upsert({
         profile_id: profile.id,
         basic_template: plan === 'basic',
         premium_template: plan === 'pro' || plan === 'enterprise'

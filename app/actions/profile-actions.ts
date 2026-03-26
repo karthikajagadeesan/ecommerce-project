@@ -39,10 +39,9 @@ export async function updateProfile(name: string): Promise<AuthActionResult> {
       return { error: 'Not authenticated' }
     }
 
-    const { error } = await (supabase
-      .from('profiles')
-      .update({ name } as any)
-      .eq('auth_user_id', user.id) as any)
+    const { error } = await (supabase.from('profiles') as any)
+      .update({ name })
+      .eq('auth_user_id', user.id);
 
     if (error) {
       return { error: error.message }

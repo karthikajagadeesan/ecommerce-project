@@ -35,18 +35,18 @@ export async function signIn(
       return { error: error?.message || 'Login failed' }
     }
 
-    // Check membership status from membership table
-    const { data: profile } = await (supabase
+    // Check membership status from user_membership table
+    const { data: profile } = await supabase
       .from('profiles')
       .select('id')
       .eq('auth_user_id', user.id)
-      .single() as Promise<{ data: Pick<Tables<'profiles'>, 'id'> | null, error: any }>)
+      .single() as any;
 
     const { data: membership } = profile ? await supabase
-      .from('membership')
+      .from('user_membership')
       .select('*')
       .eq('profile_id', profile.id)
-      .single() : { data: null }
+      .single() as any : { data: null };
 
     revalidatePath('/', 'layout')
     
@@ -92,7 +92,7 @@ export async function signUp(
     try {
       const { createAdminClient } = await import('@/lib/supabase/admin');
       const adminAuth = createAdminClient();
-      const { error: profileError } = await adminAuth.from('profiles').upsert({
+      const { error: profileError } = await (adminAuth.from('profiles') as any).upsert({
         auth_user_id: user.id,
         name: validation.data.name,
         email: validation.data.email,

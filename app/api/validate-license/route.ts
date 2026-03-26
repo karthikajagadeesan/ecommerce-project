@@ -12,11 +12,11 @@ export async function POST(req: NextRequest) {
     const supabase = await createClient();
 
     // 1. Fetch license
-    const { data: license, error } = await supabase
+    const { data: license, error } = await (supabase
       .from('licenses')
       .select('*, profiles(name)')
       .eq('license_key', license_key)
-      .single();
+      .single() as any);
 
     if (error || !license) {
       return NextResponse.json({ valid: false, reason: 'Key not found' });
@@ -27,20 +27,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ valid: false, reason: 'Payment incomplete' });
     }
 
-    // 3. Check/Register Domain
-    // If license.domain is empty, register the domain from request
-    if (!license.domain) {
-      await supabase
-        .from('licenses')
-        .update({ domain: domain })
+    // 3. Domain Check (domain_url is renamed from domain in migration)
+    if (!license.domain_url) {
+      await (supabase
+        .from('licenses') as any)
+        .update({ domain_url: domain })
         .eq('id', license.id);
-    } else if (license.domain !== domain) {
+    } else if (license.domain_url !== domain) {
       return NextResponse.json({ valid: false, reason: 'Domain mismatch' });
     }
 
     // 4. Log API Usage
     if (license.user_id) {
-       await supabase.from('api_usage').insert({
+       await (supabase.from('api_usage') as any).insert({
          user_id: license.user_id,
          endpoint: '/api/validate-license'
        });

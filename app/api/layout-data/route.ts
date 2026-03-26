@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       .from('licenses')
       .select('*')
       .eq('license_key', license_key)
-      .single();
+      .single() as any;
 
     if (error || !license || license.payment_status !== 'completed' || license.status !== 'active') {
        return NextResponse.json({ success: false, reason: 'Invalid or inactive license' }, { status: 403 });
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Log Layout Fetch
     if (license.user_id) {
-      await supabase.from('api_usage').insert({
+      await (supabase.from('api_usage') as any).insert({
         user_id: license.user_id,
         endpoint: '/api/layout-data'
       });

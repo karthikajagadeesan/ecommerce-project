@@ -19,7 +19,7 @@ export default async function LicensePage() {
     .eq('displayed_once', false)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single();
+    .single() as any;
 
   let finalLicenseKey = license?.license_key;
   let finalPlan = license?.plan;

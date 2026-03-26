@@ -34,14 +34,14 @@ export default async function UserDashboard() {
     .from('profiles')
     .select('id, name')
     .eq('auth_user_id', user.id)
-    .single() as { data: Pick<Tables<'profiles'>, 'id' | 'name'> | null };
+    .single() as any;
 
-  // New Membership Table check
+  // Check user_membership table
   const { data: membership } = profile ? await supabase
-    .from('membership')
+    .from('user_membership')
     .select('*')
     .eq('profile_id', profile.id)
-    .single() as { data: Tables<'membership'> | null } : { data: null };
+    .single() as any : { data: null };
 
   const { data: license } = profile ? await supabase
     .from('licenses')
@@ -49,19 +49,19 @@ export default async function UserDashboard() {
     .eq('user_id', profile.id)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single() as { data: Tables<'licenses'> | null } : { data: null };
+    .single() as any : { data: null };
 
   const { count: apiCalls } = profile ? await supabase
     .from('api_usage')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', profile.id)
-    .eq('endpoint', '/api/validate-license') : { count: 0 as number | null };
+    .eq('endpoint', '/api/validate-license') as any : { count: 0 as number | null };
 
   const { count: dataFetches } = profile ? await supabase
     .from('api_usage')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', profile.id)
-    .eq('endpoint', '/api/layout-data') : { count: 0 as number | null };
+    .eq('endpoint', '/api/layout-data') as any : { count: 0 as number | null };
 
   // Load cookies as fallback if DB isn't writing due to RLS
   const cookieStore = await cookies();
@@ -85,7 +85,7 @@ export default async function UserDashboard() {
     },
     {
       title: 'Active Domains',
-      value: (license?.domain || hasMockLicense) ? 1 : 0,
+      value: (license?.domain_url || hasMockLicense) ? 1 : 0,
       icon: <ExternalLink className="h-5 w-5 text-primary" />,
       description: 'Registered sites'
     }
