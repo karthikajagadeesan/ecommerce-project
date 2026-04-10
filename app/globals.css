@@ -3,6 +3,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  scroll-behavior: smooth;
   --background: oklch(0.9824 0.0055 256.6744);
   --foreground: oklch(0.2064 0.0388 265.5472);
   --card: oklch(0.9912 0.0027 256.6631);
@@ -55,6 +56,26 @@
   --shadow-2xl: 0px 4px 12px 0px hsl(222 47% 11% / 0.25);
   --tracking-normal: -0.01em;
   --spacing: 0.25rem;
+
+  /* UI Specific Colors - Revamped for exact match */
+  --ui-blue: #3650a5;
+  --ui-cyan: #30cdb0;
+  --ui-sky: #2d8ec5;
+  --ui-bg-blue: #f0f9ff;
+  --ui-bg-blue-soft: #f7fcff;
+  --ui-text-main: #0f172a;
+  --ui-text-muted: #64748b;
+  --ui-border-soft: #e2e8f0;
+  --ui-border-blue: #d1e9ff;
+  --ui-badge-bg: #dcf2fe;
+  --ui-badge-text: #36a5cc;
+  --ui-badge-dot: #30cdb0;
+  --ui-white: #ffffff;
+  --ui-bg-indigo-soft: #f5f7ff;
+  --ui-bg-sky-soft: #f0f9ff;
+  --ui-bg-teal-soft: #f0fdfa;
+  --ui-bg-emerald-soft: #ecfdf5;
+  --ui-emerald: #10b981;
 }
 
 .dark {
@@ -168,6 +189,25 @@
   --tracking-wide: calc(var(--tracking-normal) + 0.025em);
   --tracking-wider: calc(var(--tracking-normal) + 0.05em);
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+
+  --color-ui-blue: var(--ui-blue);
+  --color-ui-cyan: var(--ui-cyan);
+  --color-ui-sky: var(--ui-sky);
+  --color-ui-bg-blue: var(--ui-bg-blue);
+  --color-ui-bg-blue-soft: var(--ui-bg-blue-soft);
+  --color-ui-text-main: var(--ui-text-main);
+  --color-ui-text-muted: var(--ui-text-muted);
+  --color-ui-border-soft: var(--ui-border-soft);
+  --color-ui-border-blue: var(--ui-border-blue);
+  --color-ui-badge-bg: var(--ui-badge-bg);
+  --color-ui-badge-text: var(--ui-badge-text);
+  --color-ui-badge-dot: var(--ui-badge-dot);
+  --color-ui-white: var(--ui-white);
+  --color-ui-bg-indigo-soft: var(--ui-bg-indigo-soft);
+  --color-ui-bg-sky-soft: var(--ui-bg-sky-soft);
+  --color-ui-bg-teal-soft: var(--ui-bg-teal-soft);
+  --color-ui-bg-emerald-soft: var(--ui-bg-emerald-soft);
+  --color-ui-emerald: var(--ui-emerald);
 }
 
 @layer base {
@@ -178,6 +218,26 @@
   body {
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
+  }
+
+  .gradient-primary {
+    background: linear-gradient(to right, #3650a5, #2d8ec5, #30cdb0);
+  }
+
+  .gradient-reverse {
+    background: linear-gradient(to right, #eafcfb, #e0f3fc, #e6eafc);
+  }
+
+  /* Scroll Reveal Utils */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -677,7 +737,7 @@
 
   .s22_master4 .sec_title {
     text-align: left;
-    margin-bottom: 40px;
+    /* margin-bottom: 5px; */
   }
 
   .s22_master4 .sec_title h1 {
@@ -719,23 +779,52 @@
   }
 
   @keyframes panelInFromRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to   { transform: translateX(0);    opacity: 1; }
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
   }
+
   @keyframes panelInFromLeft {
-    from { transform: translateX(-100%); opacity: 0; }
-    to   { transform: translateX(0);     opacity: 1; }
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
   }
+
   .panel-in-right {
-    animation: panelInFromRight 0.45s cubic-bezier(.22,.9,.35,1) both;
+    animation: panelInFromRight 0.45s cubic-bezier(.22, .9, .35, 1) both;
   }
+
   .panel-in-left {
-    animation: panelInFromLeft 0.45s cubic-bezier(.22,.9,.35,1) both;
+    animation: panelInFromLeft 0.45s cubic-bezier(.22, .9, .35, 1) both;
   }
-  .panel-col-0 { animation-delay: 0ms; }
-  .panel-col-1 { animation-delay: 40ms; }
-  .panel-col-2 { animation-delay: 80ms; }
-  .panel-col-3 { animation-delay: 120ms; }
+
+  .panel-col-0 {
+    animation-delay: 0ms;
+  }
+
+  .panel-col-1 {
+    animation-delay: 40ms;
+  }
+
+  .panel-col-2 {
+    animation-delay: 80ms;
+  }
+
+  .panel-col-3 {
+    animation-delay: 120ms;
+  }
 
   .s22_popup_nav {
     display: flex;
@@ -794,5 +883,5 @@
   /* Layouts Showcase Section */
   .layouts-section {
     background-color: oklch(88.339% 0.03736 250.833);
-   }
+  }
 }

@@ -55,15 +55,18 @@ export async function processPaymentSuccess(domainUrl: string) {
       .single() as any;
 
     const cookieStore = await cookies();
-    const fallbackPlan = cookieStore.get('s22_plan')?.value;
-    const plan = (profile?.plan || user.user_metadata?.plan || fallbackPlan) as 'basic' | 'pro' | 'enterprise';
+    
+    // 1.5 Fetch membership details from user_membership
+    const { data: membership } = await supabase
+      .from('user_membership')
+      .select('plan_name, price, validity_days')
+      .eq('profile_id', profile?.id)
+      .eq('status', 'active')
+      .single() as any;
 
-    if (!plan) {
-      return { redirectTo: '/membership' }
-    }
-
-    const planPrices: Record<string, number> = { basic: 29, pro: 79, enterprise: 199 };
-    const amountPaid = planPrices[plan] || 0;
+    const plan = membership?.plan_name || (cookieStore.get('s22_plan')?.value) || 'basic';
+    const amountPaid = membership?.price || 0;
+    const validity = membership?.validity_days || 30;
 
     // 2. Generate unique license key (S22-XXXX-XXXX-XXXX-XXXX format)
     const prefix = "S22"
@@ -100,12 +103,12 @@ export async function processPaymentSuccess(domainUrl: string) {
       console.warn("Admin Client Fallback triggered.", e.message);
     }
 
-    cookieStore.set('s22_mock_license', licenseKey, { path: '/', maxAge: 60 * 5 }); // Valid for 5 mins
-    cookieStore.set('s22_mock_plan', plan, { path: '/', maxAge: 60 * 5 });
-    cookieStore.set('s22_mock_domain', domainUrl, { path: '/', maxAge: 60 * 5 });
+    cookieStore.set({ name: 's22_mock_license', value: licenseKey, path: '/', maxAge: 60 * 5 });
+    cookieStore.set({ name: 's22_mock_plan', value: plan, path: '/', maxAge: 60 * 5 });
+    cookieStore.set({ name: 's22_mock_domain', value: domainUrl, path: '/', maxAge: 60 * 5 });
     
     // Also approve Dashboard access
-    cookieStore.set('s22_dashboard_approved', 'true', { path: '/', maxAge: 60 * 60 * 24 });
+    cookieStore.set({ name: 's22_dashboard_approved', value: 'true', path: '/', maxAge: 60 * 60 * 24 });
 
     // 5. Trigger Confirmation Email (Section 8 of ecommerce.md)
     const userName = profile?.name || user.user_metadata?.full_name || '';

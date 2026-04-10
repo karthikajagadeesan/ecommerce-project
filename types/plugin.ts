@@ -3,7 +3,7 @@ export interface PluginEntry {
   name: string;
   profession: string;
   content: string;
-  style: string;
+  style: string | null | undefined;
   image_id: string;
   video_id: string;
   c_order: number;

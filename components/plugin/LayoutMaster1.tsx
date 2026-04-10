@@ -12,11 +12,7 @@ import 'swiper/css/navigation';
 export const LayoutMaster1: React.FC<LayoutProps> = ({ entries }) => {
   if (!entries.length) return null;
 
-  // Add sample video fallback
-  const processedEntries = useMemo(() => entries.map(entry => ({
-    ...entry,
-    video_url: entry.video_url
-  })), [entries]);
+  const processedEntries = useMemo(() => entries, [entries]);
 
   const title = entries[0]?.s_title || 'What Our Customers Say';
   const description = entries[0]?.s_cont || 'Real stories from real users. Experience the difference today.';

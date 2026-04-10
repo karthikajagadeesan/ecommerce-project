@@ -69,7 +69,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         <video
           ref={videoRef}
           src={entry.video_url}
-          muted
+          // muted
           loop
           playsInline
           preload="auto"

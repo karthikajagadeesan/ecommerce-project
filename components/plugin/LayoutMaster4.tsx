@@ -17,10 +17,9 @@ export const LayoutMaster4: React.FC<LayoutProps> = ({ entries }) => {
 
   if (!entries.length) return null;
 
-  // Add sample video fallback
   const processedEntries = useMemo(() => entries.map(entry => ({
     ...entry,
-    video_url: entry.video_url || 'https://cdn.pixabay.com/video/2024/02/09/200078-912140411_large.mp4'
+    video_url: entry.video_url || undefined
   })), [entries]);
 
   const title = entries[0]?.s_title || 'Testimonial';
@@ -78,7 +77,7 @@ export const LayoutMaster4: React.FC<LayoutProps> = ({ entries }) => {
 
   return (
     <section className="s22_master4 py-10 px-10">
-      <div className="sec_title ">
+      <div className="sec_title">
         <h1 className="plugin-title">
           {title}
         </h1>
@@ -87,7 +86,7 @@ export const LayoutMaster4: React.FC<LayoutProps> = ({ entries }) => {
         </p>
       </div>
 
-      <div className="overflow-hidden w-full mb-12">
+      <div className="overflow-hidden w-full mb-10">
         <div
           className={cn("flex gap-x-8 items-start w-full", numCols === 1 && 'flex-col')}
         >

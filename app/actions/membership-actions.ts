@@ -3,8 +3,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
+import { Database, Tables, TablesInsert } from '@/types/database-type'
+import { createAdminClient } from '@/lib/supabase/admin'
 
-export async function selectPlan(plan: 'basic' | 'pro' | 'enterprise') {
+export async function selectPlan(planId: number) {
   try {
     const supabase = await createClient()
 
@@ -13,7 +15,19 @@ export async function selectPlan(plan: 'basic' | 'pro' | 'enterprise') {
       return { redirectTo: '/login' }
     }
 
-    // 1. Find profile by auth_user_id (UUID)
+    // 1. Fetch current plan data from master membership table
+    const { data: membershipPlan, error: planError } = await supabase
+      .from('membership')
+      .select('*')
+      .eq('id', planId)
+      .eq('is_active', true)
+      .single() as any;
+
+    if (planError || !membershipPlan) {
+      throw new Error(`Plan not found: ${planError?.message || 'Invalid plan'}`);
+    }
+
+    // 2. Find profile by auth_user_id (UUID)
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
@@ -21,41 +35,67 @@ export async function selectPlan(plan: 'basic' | 'pro' | 'enterprise') {
       .single() as any;
 
     if (profile) {
-      // 2. Update separate user_membership table using Admin Client as per new requirements
-      const { createAdminClient } = await import('@/lib/supabase/admin');
       const adminAuth = createAdminClient();
       
-      const { error: membershipError } = await (adminAuth.from('user_membership') as any).upsert({
-        profile_id: profile.id,
-        basic_template: plan === 'basic',
-        premium_template: plan === 'pro' || plan === 'enterprise'
-      }, { onConflict: 'profile_id' });
+      // 1. Manually check for existing membership to avoid 'ON CONFLICT' syntax errors
+      const { data: existing } = await (adminAuth.from('user_membership') as any)
+        .select('id')
+        .eq('profile_id', profile.id)
+        .single();
 
-      if (membershipError) {
-        console.error("User Membership Save Error:", membershipError);
-        throw new Error(`Failed to save user membership: ${membershipError.message}`);
+      const membershipData = {
+        profile_id: profile.id,
+        membership_id: membershipPlan.id,
+        plan_name: membershipPlan.plan_name,
+        price: membershipPlan.price,
+        validity_days: membershipPlan.validity_days,
+        plan_limit: membershipPlan.plan_limit,
+        membership_json: membershipPlan,
+        status: 'active',
+        start_date: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      let saveError;
+      if (existing) {
+        // 2. Perform Update
+        const { error } = await (adminAuth.from('user_membership') as any)
+          .update(membershipData)
+          .eq('id', existing.id);
+        saveError = error;
+      } else {
+        // 3. Perform Insert
+        const { error } = await (adminAuth.from('user_membership') as any)
+          .insert(membershipData);
+        saveError = error;
+      }
+
+      if (saveError) {
+        console.error("User Membership Save Error:", saveError);
+        throw new Error(`Failed to save user membership: ${saveError.message}`);
       }
     } else {
       console.error("Profile not found for user:", user.id);
       throw new Error("User profile not found. Please re-login.");
     }
 
-    // 2. Update Auth metadata for additional security
+    // 4. Update Auth metadata
     await supabase.auth.updateUser({
       data: {
         membership_selected: true,
-        plan: plan
+        plan: membershipPlan.plan_name
       }
     })
 
-    // 3. Fallback: Set HTTP-Only cookies
+    // 5. Fallback: Set HTTP-Only cookies
     const cookieStore = await cookies();
-    cookieStore.set('s22_plan', plan, { path: '/', maxAge: 60 * 60 * 24 });
-    cookieStore.set('s22_membership', 'true', { path: '/', maxAge: 60 * 60 * 24 });
+    cookieStore.set({ name: 's22_plan', value: membershipPlan.plan_name, path: '/', maxAge: 60 * 60 * 24 });
+    cookieStore.set({ name: 's22_membership', value: 'true', path: '/', maxAge: 60 * 60 * 24 });
 
     revalidatePath('/membership')
     return { success: true, redirectTo: '/payment' }
   } catch (err: any) {
+    console.error("Server Action Exception:", err);
     return { error: err.message || 'An unexpected error occurred' }
   }
 }

@@ -54,7 +54,7 @@ export const VideoPopup: React.FC<VideoPopupProps> = ({ entries }) => {
             <p className="prof">{entry.profession}</p>
             <div className="cont">{entry.content}</div>
             <div className="styles">
-              {entry.style.split('|').map((tag, i) => (
+              {(entry.style ?? '').split('|').map((tag, i) => (
                 tag.trim() && <div key={i}>{tag.trim()}</div>
               ))}
             </div>

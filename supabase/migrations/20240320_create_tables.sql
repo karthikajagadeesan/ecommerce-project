@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.licenses (
   payment_status TEXT CHECK (payment_status IN ('pending', 'completed', 'failed')) DEFAULT 'pending',
   domain TEXT,
   user_id INTEGER REFERENCES public.profiles(id) ON DELETE CASCADE,
-  plan TEXT CHECK (plan IN ('basic', 'pro', 'enterprise')),
+  plan TEXT CHECK (plan IN ('basic', 'premium')),
   displayed_once BOOLEAN DEFAULT FALSE
 );
 

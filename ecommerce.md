@@ -232,11 +232,8 @@ Check user progress in DB
 
 Three clearly defined plans must be displayed. Suggested default structure (customize as needed):
 
-| Plan | Features | Price |
-|---|---|---|
-| **Basic** | Layout 1 only, Standard transitions, Limited API calls | $X/month |
-| **Pro** | Layouts 1–3, Advanced transitions, More API calls | $Y/month |
-| **Enterprise** | All Layouts (1–4), All transitions, Unlimited API calls | $Z/month |
+| **Basic** | Layout 1 only, Standard transitions, Limited API calls | $29/month |
+| **Premium** | All Layouts (1–4), All transitions, Unlimited API calls | $79/month |
 
 ### Behavior
 
@@ -414,11 +411,8 @@ The API must perform all three of the following checks:
 
 After successful license validation, the plugin displays available **layouts** and **transitions** based on the user's subscribed plan:
 
-| Plan | Available Layouts | Available Transitions |
-|---|---|---|
 | Basic | Layout 1 | Standard |
-| Pro | Layout 1, 2, 3 | Standard, Advanced |
-| Enterprise | Layout 1, 2, 3, 4 | All Transitions |
+| Premium | Layout 1, 2, 3, 4 | All Transitions |
 
 The user selects a layout (e.g., Layout 1, 2, 3, or 4) from within the WordPress plugin interface.
 
@@ -479,7 +473,7 @@ The backend database must manage all license-related data. The following fields 
 | `payment_status` | ENUM / VARCHAR | `pending`, `completed`, `failed` |
 | `domain` | VARCHAR | WordPress domain registered with the license |
 | `user_id` | UUID / FK | Foreign key referencing the `users` / `profiles` table |
-| `plan` | VARCHAR | `basic`, `pro`, `enterprise` |
+| `plan` | VARCHAR | `basic`, `premium` |
 | `displayed_once` | BOOLEAN | Whether license key has been shown to the user |
 
 ### Additional Tables

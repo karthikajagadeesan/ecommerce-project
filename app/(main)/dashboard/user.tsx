@@ -67,7 +67,7 @@ export default async function UserDashboard() {
   const cookieStore = await cookies();
   const mockPlan = cookieStore.get('s22_mock_plan')?.value || cookieStore.get('s22_plan')?.value;
   
-  const finalPlan = membership?.premium_template ? 'pro' : (membership?.basic_template ? 'basic' : (user.user_metadata?.plan || (mockPlan as string) || 'basic'));
+  const finalPlan = membership?.plan_name || user.user_metadata?.plan || (mockPlan as string) || 'basic';
   const hasMockLicense = cookieStore.get('s22_mock_license');
 
   const stats = [
@@ -190,8 +190,7 @@ export default async function UserDashboard() {
           <CardContent className="p-0 flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-x-2 divide-y-2 md:divide-y-0 h-full">
             {[1, 2, 3, 4].map((num) => {
               const isAvailable = (finalPlan === 'basic' && num === 1) || 
-                               (finalPlan === 'pro' && num <= 3) || 
-                               (finalPlan === 'enterprise');
+                               (finalPlan === 'premium');
               
               return (
                 <div key={num} className={cn(

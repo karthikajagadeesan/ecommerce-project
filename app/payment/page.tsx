@@ -11,32 +11,32 @@ export default async function PaymentPage() {
     redirect('/login');
   }
 
-  // Attempt to read from profile
+  // Fetch profile
   const { data: profile } = await supabase
     .from('profiles')
-    .select('plan, membership_selected')
-    .eq('id', user.id)
+    .select('id, plan, membership_selected')
+    .eq('auth_user_id', user.id)
     .single() as any;
 
-  // Gracefully fallback to user_metadata or secure Next.js cookies if RLS blocks DB retrieval
+  // Fetch the latest user membership if profile exists
+  const { data: userMembership } = profile ? await supabase
+    .from('user_membership')
+    .select('plan_name, price, status')
+    .eq('profile_id', profile.id)
+    .single() as any : { data: null };
+
+  // Gracefully fallback to secure Next.js cookies if RLS blocks DB retrieval
   const cookieStore = await cookies();
   const fallbackMembership = cookieStore.get('s22_membership')?.value === 'true';
   const fallbackPlan = cookieStore.get('s22_plan')?.value;
 
-  const hasMembership = profile?.membership_selected || user.user_metadata?.membership_selected || fallbackMembership;
-  const selectedPlan = (profile?.plan || user.user_metadata?.plan || fallbackPlan) as 'basic' | 'pro' | 'enterprise';
+  const hasMembership = userMembership?.status === 'active' || profile?.membership_selected || user.user_metadata?.membership_selected || fallbackMembership;
+  const selectedPlan = userMembership?.plan_name || (profile?.plan || user.user_metadata?.plan || fallbackPlan) as string;
+  const price = userMembership?.price || 0;
 
   if (!hasMembership || !selectedPlan) {
     redirect('/membership');
   }
-
-  const planPrices = {
-    basic: 29,
-    pro: 79,
-    enterprise: 199,
-  };
-
-  const price = planPrices[selectedPlan] || 0;
 
   return (
     <div className=" bg-background mt-15 px-6">
