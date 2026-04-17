@@ -18,6 +18,11 @@ export async function POST(req: NextRequest) {
   try {
     const { license_key, domain, layout_id } = await req.json();
 
+    // console.log('--- Layout Data Request ---');
+    // console.log('License Key:', license_key);
+    // console.log('Domain:', domain);
+    // console.log('Layout ID:', layout_id);
+
     if (!license_key || !domain || !layout_id) {
        return NextResponse.json({ 
          success: false, 
@@ -115,7 +120,7 @@ export async function POST(req: NextRequest) {
     const { data: userMembership } = await admin
       .from('user_membership')
       .select('plan_limit')
-      .eq('profile_id', license.user_id as number)
+      .eq('user_id', license.user_id as number)
       .single();
 
     const maxAllowed = (userMembership as any)?.plan_limit || (userPlan === 'premium' ? 2 : 1);
@@ -218,10 +223,21 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // const { searchParams } = new URL(req.url);
+  // const license_key = searchParams.get('license_key');
+  // const domain = searchParams.get('domain');
+  // const layout_id = searchParams.get('layout_id');
+
+  // console.log('--- GET Layout Data Attempt ---');
+  // console.log('License Key:', license_key);
+  // console.log('Domain:', domain);
+  // console.log('Layout ID:', layout_id);
+
   return NextResponse.json({ 
     success: false, 
-    reason: 'Method Not Allowed. Please use POST with JSON body containing license_key, domain, and layout_id.' 
+    reason: 'Method Not Allowed. Please use POST with JSON body containing license_key, domain, and layout_id.',
+    // received: { license_key, domain, layout_id }
   }, { 
     status: 405,
     headers: { 'Access-Control-Allow-Origin': '*' }

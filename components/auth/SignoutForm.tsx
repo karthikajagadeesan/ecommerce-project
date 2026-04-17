@@ -43,7 +43,9 @@ export default function SignoutForm({ userName }: SignoutFormProps) {
             <span className="opacity-0 transition-opacity duration-300 group-hover:opacity-100 text-xs font-medium translate-x-2 group-hover:translate-x-0">
               Logout
             </span> */}
+          <div className="p-1.5 border border-ui-border-shade rounded-md transition-colors hover:border-primary/50">
             <LogOut className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110" />
+          </div>
           {/* </div> */}
         </div>
       )}

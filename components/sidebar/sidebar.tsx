@@ -13,7 +13,8 @@ import {
   LogOutIcon,
   PanelLeftIcon,
   LucideIcon,
-  UserStarIcon
+  UserStarIcon,
+  ShieldCheck
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
@@ -36,8 +37,13 @@ const menuItems: MenuItem[] = [
   },
   {
     label: "Membership",
-    href: "/membership",
+    href: "/upgrade-membership",
     icon: BadgeCheck,
+  },
+  {
+    label: "Site Access",
+    href: "/site-access",
+    icon: ShieldCheck,
   },
    {
     label: "Profile",
@@ -145,32 +151,32 @@ export default function Sidebar({ userName }: { userName: string }) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar border border-sidebar-border transition-all duration-300 ease-in-out overflow-hidden shadow-xl",
-          "md:sticky md:top-0 md:h-screen md:z-auto",
-          isCollapsed ? "w-[72px]" : "w-[260px]",
+          "fixed z-50 flex flex-col bg-ui-bg-blue border border-ui-border-shade transition-all duration-300 ease-in-out",
+          "md:sticky md:top-2 md:m-2 md:rounded-lg md:h-[calc(100vh-16px)] h-full",
+          isCollapsed ? "w-[62px]" : "w-[280px] md:w-[232px]",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
         {/* Header */}
-        <div className="flex h-[72px] items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <Logo settings={appSettings} />
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 md:hidden"
-              onClick={() => setIsSidebarOpen(false)}
-            >
-              <XIcon className="h-4 w-4" />
-            </Button>
-          </div>
+        <div className={cn(
+          "flex h-[67px] items-center transition-all duration-300 relative",
+          isCollapsed ? "justify-start" : "justify-center px-8"
+        )}>
+          <Logo settings={appSettings} isCollapsed={isCollapsed} />
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 md:hidden absolute right-4"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <XIcon className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4">
-          <Separator className="bg-sidebar-border mb-4 opacity-50" />
+        <nav className="flex-1 p-2">
+          <Separator className="border border-ui-border-shade mb-3 opacity-50" />
           <ul className="space-y-2">
             {menuItems.map((item) => (
               <SidebarMenuItem
@@ -185,7 +191,7 @@ export default function Sidebar({ userName }: { userName: string }) {
         </nav>
 
         {/* Footer */}
-        <div className=" p-4 bg-sidebar-accent/5">
+        <div className=" p-2 bg-sidebar-accent/5">
           {/* Theme Toggle */}
           <div className="mb-2">
             <ThemeToggle />
@@ -205,7 +211,7 @@ export default function Sidebar({ userName }: { userName: string }) {
           </Button>
 
           {/* Separator */}
-          <Separator className="bg-sidebar-border my-4 opacity-50" />
+          <Separator className="border border-ui-border-shade my-4 opacity-50" />
 
           {/* User Profile & Sign Out */}
           <SignoutForm userName={userName} />

@@ -7,6 +7,7 @@ import { Check, Copy, ExternalLink, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import CustomButton from "@/components/customButton";
 
 interface LicenseViewerProps {
   licenseKey: string;
@@ -53,43 +54,50 @@ export default function LicenseViewer({ licenseKey, plan, licenseId }: LicenseVi
   };
 
   return (
-    <Card className="border-2 border-primary/20 bg-background/50 shadow-2xl relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+    <Card className="border-2 border-primary/20 bg-background/50 shadow-2xl relative overflow-hidden">
+      {/* <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
         <ShieldCheck className="w-24 h-24" />
-      </div>
+      </div> */}
       <CardContent className="pt-8 space-y-6">
         <div className="flex flex-col items-center gap-2">
-          <p className="text-xs font-bold uppercase tracking-widest text-primary/70">Your Active License</p>
+          <p className="text-sm font-bold uppercase tracking-widest ">Your Active License</p>
           <div className="px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full capitalize">
             {plan} Membership
           </div>
         </div>
 
         <div className="relative group/key">
-          <div className="bg-muted border-2 border-border/50 rounded-2xl p-6 font-mono font-black text-2xl tracking-[0.2em] break-all text-center text-primary group-hover/key:border-primary/30 transition-colors cursor-pointer select-none ring-offset-background group-active/key:scale-95 duration-200" onClick={handleCopy}>
+          <div className="bg-muted border-1 border-border/50 rounded-2xl p-6 font-medium font-black text-2xl tracking-[0.2em] break-all text-center text-primary group-hover/key:border-primary/30 transition-colors cursor-pointer select-none ring-offset-background group-active/key:scale-95 duration-200" onClick={handleCopy}>
             {licenseKey}
           </div>
-          <p className="text-center text-[10px] text-muted-foreground mt-2 uppercase tracking-tighter">Click to copy key</p>
+          <p className="text-center text-xs text-muted-foreground mt-1 ">Click to copy key</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 pt-4 relative z-10">
-          <Button 
-            className="flex-1 rounded-full h-14 text-md font-bold group shadow-lg" 
-            onClick={handleCopy}
-            variant="secondary"
-          >
-            {copied ? (
-              <><Check className="mr-2 w-5 h-5 text-green-500" /> Key Copied!</>
-            ) : (
-              <><Copy className="mr-2 w-5 h-5 group-hover:translate-x-1 transition-transform" /> Copy Key</>
-            )}
-          </Button>
-          <Button 
-            className="flex-1 rounded-full h-14 text-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform active:scale-95" 
-            onClick={handleFinish}
-          >
-            Go to Dashboard <ExternalLink className="ml-2 w-5 h-5" />
-          </Button>
+          <div className="flex-1 flex justify-center">
+            <Button 
+              className="rounded-full h-12 text-sm font-bold group shadow-lg px-14" 
+              onClick={handleCopy}
+              variant="secondary"
+            >
+              {copied ? (
+                <><Check className="mr-2 w-5 h-5 text-green-500" /> Key Copied!</>
+              ) : (
+                <><Copy className="mr-2 w-5 h-5 group-hover:translate-x-1 transition-transform" /> Copy Key</>
+              )}
+            </Button>
+          </div>
+          <div className="flex-1 flex justify-center">
+            <CustomButton
+              text="Go to Dashboard"
+              iconColor="text-white"
+              iconBgColor="gradient-primary group-hover:bg-gray-800"
+              buttonBgColor="bg-ui-badge-bg"
+              textColor="text-black"
+              borderColor="border border-ui-border-shade"
+              onClick={handleFinish}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -21,13 +21,15 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card"
 import Link from 'next/link'
 
 const signupSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
+  firstName: z.string().min(2, { message: 'First name must be at least 2 characters' }),
+  lastName: z.string().min(1, { message: 'Last name is required' }),
   email: z.string().email({ message: 'Invalid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  phoneNumber: z.string().min(7, { message: 'Enter a valid phone number' }),
 })
 
 export function SignupForm() {
@@ -37,9 +39,11 @@ export function SignupForm() {
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       password: '',
+      phoneNumber: '',
     },
   })
 
@@ -57,7 +61,7 @@ export function SignupForm() {
         router.refresh()
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || 'An unexpected error occurred')
     }
   })
@@ -67,55 +71,90 @@ export function SignupForm() {
   }
 
   return (
-    <Card className="w-full border-2 border-primary/10 shadow-xl bg-card/50 backdrop-blur-sm">
+    <Card className="w-full  border border-ui-border-shade shadow-xl  bg-primary/5 -translate-y-2 ">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-md font-black text-center tracking-tighter"> Create your account to unlock premium layouts.</CardTitle>
-        {/* <CardDescription className="text-center font-medium">
-          Create your account to unlock premium layouts.
-        </CardDescription> */}
+          <CardTitle className="text-xl font-semibold text-center tracking-tighter uppercase">Create account</CardTitle>
+       <CardDescription className="text-md font-medium text-center">
+         Create your account to unlock premium layouts.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-widest opacity-70">Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John Doe" {...field} className="h-12 bg-background/50 border-2" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* First & Last Name */}
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">First Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John" {...field} className="h-10 bg-background/50 focus-visible:ring-ui-border-shade focus-visible:border-ui-border-shade" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Doe" {...field} className="h-10 bg-background/50  focus-visible:ring-ui-border-shade focus-visible:border-ui-border-shade" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Email */}
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-widest opacity-70">Email Address</FormLabel>
+                  <FormLabel className="text-sm font-medium">Email Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} className="h-12 bg-background/50 border-2" />
+                    <Input placeholder="name@example.com" {...field} className="h-10 bg-background/50 focus-visible:ring-ui-border-shade " />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {/* Phone Number */}
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">Phone Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+91 1245678900" type="tel" {...field} className="h-10 bg-background/50 focus-visible:ring-ui-border-shade " />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Password */}
             <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-widest opacity-70">Password</FormLabel>
+                  <FormLabel className="text-sm font-medium">Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         {...field}
-                        className="h-12 bg-background/50 border-2 pr-12"
+                        className="h-10 bg-background/50 focus-visible:ring-ui-border-shade pr-12"
                       />
                       <Button
                         type="button"
@@ -136,16 +175,21 @@ export function SignupForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full h-12 text-md font-black uppercase tracking-[0.1em] rounded-full shadow-lg transition-all active:scale-95" disabled={signupMutation.isPending}>
-              {signupMutation.isPending ? (
-                <>
-                  Creating account
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                </>
-              ) : (
-                'Sign Up'
-              )}
-            </Button>
+
+            <div className="flex justify-center pt-2">
+              <Button 
+                type="submit" 
+                className="w-45 h-10 text-md font-medium  rounded-xl shadow-lg transition-all flex items-center justify-center"
+                disabled={signupMutation.isPending}
+              >
+                <span className="relative">
+                  {signupMutation.isPending ? 'Signing up...' : 'Sign Up'}
+                  {signupMutation.isPending && (
+                    <Loader2 className="absolute -right-7 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
+                  )}
+                </span>
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

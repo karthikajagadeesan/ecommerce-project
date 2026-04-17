@@ -2,15 +2,17 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { cn } from '@/lib/utils'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { AppSettings } from '@/store/app-settings-store'
 
 interface LogoProps {
   settings?: AppSettings
+  isCollapsed?: boolean
 }
 
-export default function Logo({ settings }: LogoProps) {
+export default function Logo({ settings, isCollapsed }: LogoProps) {
   const { theme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
@@ -29,9 +31,12 @@ export default function Logo({ settings }: LogoProps) {
         width={40}
         height={40}
         priority
-        className="h-15 mt-5 ml-6  w-auto transition-opacity duration-300"
+        className={cn(
+          "w-auto transition-all duration-300 mt-3",
+          isCollapsed ? "h-9" : "h-14"
+        )}
       />
-      {!settings?.logo && (
+      {!settings?.logo && !isCollapsed && (
         <span className="text-xl font-black tracking-tighter text-foreground">
           {settings?.name || "Solution22"}
         </span>

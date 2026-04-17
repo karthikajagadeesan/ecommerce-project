@@ -1,18 +1,32 @@
 (function() {
-    // S22 WordPress Master Widget - Selection and License Handler
-    const container = document.getElementById('s22-plugin-container');
-    if (!container) return;
+    // S22 Master Widget - Selection and License Handler
+    const config = window.S22Config;
+    if (!config || !config.licenseKey) {
+        console.error('S22 Widget: Missing window.S22Config or licenseKey.');
+        return;
+    }
 
-    const licenseKey = container.getAttribute('data-license');
+    const licenseKey = config.licenseKey;
     const domain = window.location.origin.replace(/\/$/, '');
-    
+
     // Determine base URL from the script source itself
     const scriptSrc = document.currentScript ? document.currentScript.src : 'http://localhost:3000';
     const baseUrl = new URL(scriptSrc).origin;
 
+    // Create and inject the plugin container dynamically
+    let container = document.getElementById('s22-plugin-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 's22-plugin-container';
+        document.body.appendChild(container);
+    }
+
     async function initializePlugin() {
         try {
-            // First, validate the license to get the plan
+            // console.log('--- Widget: Initiating License Validation ---');
+            // console.log('License Key:', licenseKey);
+            // console.log('Domain:', domain);
+
             const response = await fetch(`${baseUrl}/api/validate-license`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -120,6 +134,11 @@
 
             const msg = document.getElementById('s22-status-msg');
             msg.innerHTML = "Requesting UI for " + layoutId + "...";
+
+            // console.log('--- Widget: Requesting Layout Data ---');
+            // console.log('License Key:', licenseKey);
+            // console.log('Domain:', domain);
+            // console.log('Layout ID:', layoutId);
 
             try {
                 const response = await fetch(`${baseUrl}/api/layout-data`, {

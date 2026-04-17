@@ -7,10 +7,12 @@ import { CheckCircle2, Zap, ShieldCheck, Trophy, Loader2, AlertCircle } from 'lu
 import { cn } from '@/lib/utils';
 import { selectPlan } from '@/app/actions/membership-actions';
 import { toast } from 'sonner';
+import { LoadingState } from '@/components/loading-state';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Tables } from '@/types/database-type';
+import CustomButton from "@/components/customButton";
 
 export default function MembershipPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
@@ -59,12 +61,7 @@ export default function MembershipPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
-        <p className="mt-4 text-sm font-black uppercase tracking-widest text-muted-foreground animate-pulse">Loading Plans...</p>
-      </div>
-    );
+    return <LoadingState message="Loading Plans..." />;
   }
 
   if (isError || !plans || plans.length === 0) {
@@ -86,15 +83,20 @@ export default function MembershipPage() {
     <div className=" bg-background mt-15 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
-           <div className="inline-flex items-center justify-center p-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-              Membership Selection
+           <div className="inline-flex items-center justify-center p-2 rounded-full gradient-primary text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2">
+              Step 1 of 3
            </div>
-          <h1 className="text-5xl font-black mb-4 tracking-tighter uppercase">Choose Your Plan</h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-medium">Select a plan to unlock premium WordPress layouts and high-performance transitions compatible with our global delivery engine.</p>
+           <h2 className="text-[38px] md:text-[40px]  text-ui-text-main mb-3 tracking-tight leading-[1.1]">
+              Choose Your Plan <br className="sm:hidden" />
+              {/* <span className="text-transparent bg-clip-text gradient-primary"></span> */}
+            </h2>
+            <p className="text-base sm:text-[17px] text-ui-text-muted leading-relaxed max-w-2xl mx-auto px-2 font-medium">
+              Select a plan to unlock premium WordPress layouts and high-performance transitions compatible with our global delivery engine.
+            </p>
         </div>
 
         <div className={cn(
-          "grid gap-8 mb-16 max-w-5xl mx-auto",
+          "grid gap-8  max-w-5xl mx-auto",
           plans.length === 1 ? "md:grid-cols-1 max-w-md" : 
           plans.length === 2 ? "md:grid-cols-2 max-w-4xl" : 
           "md:grid-cols-3"
@@ -116,24 +118,24 @@ export default function MembershipPage() {
                   <CheckCircle2 className="w-8 h-8 fill-primary/10" />
                 </div>
               )}
-              <CardHeader className="pt-10 pb-6 text-center">
+              <CardHeader className="pt-6 pb-10 text-center">
                 <div className="mb-6 flex justify-center transform group-hover:scale-110 transition-transform duration-500">
                   {plan.plan_name.toLowerCase().includes('premium') ? <Trophy className="w-8 h-8 text-primary" /> : <Zap className="w-8 h-8 text-primary" />}
                 </div>
-                <CardTitle className="text-3xl font-black tracking-tighter uppercase mb-1">{plan.plan_name}</CardTitle>
+                <CardTitle className="text-3xl font-semibold tracking-tighter uppercase mb-1">{plan.plan_name}</CardTitle>
                 <CardDescription className="font-medium text-muted-foreground">{plan.description}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-8 text-center pb-12">
-                <div className="text-6xl font-black tracking-tighter text-primary">
+              <CardContent className="space-y-5 text-center">
+                <div className="text-5xl font-semibold tracking-tighter text-primary">
                   ${plan.price}
                   <span className="text-sm font-bold text-muted-foreground tracking-normal">
-                    /{plan.validity_days === 365 ? 'yr' : 'mo'}
+                    /{plan.validity_days} Days
                   </span>
                 </div>
-                <div className="h-px w-12 bg-border mx-auto"></div>
+                <div className="h-px w-24 bg-border mx-auto"></div>
                 <ul className="space-y-4 inline-block text-left mx-auto">
                   {Array.isArray(plan.features) && (plan.features as string[]).map((feature, i) => (
-                    <li key={i} className="flex items-center gap-3 text-sm font-bold uppercase tracking-tight text-foreground/80">
+                    <li key={i} className="flex items-center gap-3 text-sm font-bold text-foreground/80">
                       <CheckCircle2 className="w-4 h-4 text-primary" />
                       {feature}
                     </li>
@@ -144,24 +146,24 @@ export default function MembershipPage() {
           ))}
         </div>
 
-        <div className="flex flex-col items-center gap-6 pt-4 mb-10 border-t-2">
-          <Button 
-            size="lg" 
-            className={cn(
-                "rounded-full px-16 h-16 text-lg font-black uppercase tracking-widest transition-all shadow-2xl",
-                selectedPlanId ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4 pointer-events-none"
-            )}
-            onClick={handleProceed}
-            disabled={planMutation.isPending}
-          >
-            {planMutation.isPending ? (
-                 <>Processing... <Loader2 className="ml-2 h-5 w-5 animate-spin" /></>
-            ) : "Proceed to Payment"}
-          </Button>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-widest">
+        <div className="flex flex-col items-center gap-6 md:pt-8 pt-4 mb-4">
+          <div className="transition-all duration-300">
+            <CustomButton
+              text={planMutation.isPending ? "Processing..." : "Proceed to Payment"}
+              iconColor="text-white"
+              iconBgColor="gradient-primary group-hover:bg-gray-800"
+              buttonBgColor="bg-ui-badge-bg"
+              textColor="text-black"
+              borderColor="border border-ui-border-shade"
+              onClick={handleProceed}
+              disabled={planMutation.isPending || selectedPlanId === null}
+              loading={planMutation.isPending}
+            />
+          </div>
+          {/* <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-widest">
                 <ShieldCheck className="w-4 h-4 text-primary" />
                 Secure Checkout Powered by Stripe
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

@@ -51,11 +51,16 @@ export default async function LicensePage() {
   <div className=" bg-background mt-15 px-6">
       <div className="max-w-xl mx-auto">
         <div className="text-center mb-6">
-           <div className="inline-flex items-center justify-center p-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-              Step 3 of 3 • Approved
+           <div className="inline-flex items-center justify-center p-2 rounded-full gradient-primary text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2">
+                Step 3 of 3 • Approved
            </div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase mb-2">Purchase Complete</h1>
-          <p className="text-muted-foreground font-medium">Your domain-locked layout license has been generated.</p>
+           <h2 className="text-[38px] md:text-[40px]  text-ui-text-main mb-3 tracking-tight leading-[1.1]">
+             Purchase Complete <br className="sm:hidden" />
+              {/* <span className="text-transparent bg-clip-text gradient-primary"></span> */}
+            </h2>
+            <p className="text-base sm:text-[17px] text-ui-text-muted leading-relaxed max-w-2xl mx-auto px-2 font-medium">
+              Your domain-locked layout license has been generated.
+            </p>
         </div>
 
            <div className="bg-yellow-500/10 border-2 border-yellow-500/20 rounded-2xl p-4 mb-4 text-center flex flex-col items-center gap-4 relative overflow-hidden">

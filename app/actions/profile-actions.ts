@@ -30,7 +30,10 @@ export async function getProfile() {
   }
 }
 
-export async function updateProfile(name: string): Promise<AuthActionResult> {
+export async function updateProfile(
+  name: string,
+  phoneNumber: string
+): Promise<AuthActionResult> {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -40,7 +43,7 @@ export async function updateProfile(name: string): Promise<AuthActionResult> {
     }
 
     const { error } = await (supabase.from('profiles') as any)
-      .update({ name })
+      .update({ name, phone_number: phoneNumber })
       .eq('auth_user_id', user.id);
 
     if (error) {

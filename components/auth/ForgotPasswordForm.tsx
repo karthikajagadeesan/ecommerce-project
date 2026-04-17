@@ -80,7 +80,7 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full   border border-ui-border-shade shadow-xl  bg-primary/5 -translate-y-2 ">
       <CardHeader>
         <CardTitle className="text-2xl">Forgot Password</CardTitle>
         <CardDescription>
@@ -95,9 +95,9 @@ export function ForgotPasswordForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className='text-sm font-medium'>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
+                    <Input placeholder="name@example.com" {...field} className='h-10 mt-1 bg-background/50 focus-visible:ring-ui-border-shade' />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -4,93 +4,18 @@
 
 <!-- 
   INSTRUCTIONS:
-  1. Generate a valid license key via the Next.js eCommerce platform payment flow.
-  2. Test the license key in Postman:
-     POST ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/validate-license
-     { "license_key": "YOUR_KEY", "domain": "YOUR_WEBSITE_DOMAIN" }
-  3. Copy the code below and paste it into any HTML file or WordPress custom HTML block.
-  4. Replace 'YOUR_LICENSE_KEY_HERE' with your actual valid license key.
+  1. Generate a valid license key via the S22 eCommerce platform payment flow.
+  2. Replace 'YOUR_LICENSE_KEY_HERE' below with your actual license key.
+  3. Copy both script tags and paste into any HTML file or WordPress custom HTML block.
   
-  IMPORTANT: If you test the license in Postman using a specific domain (e.g. "https://supabase.com/"), 
-  that exact domain is permanently locked to your license key. If you try to run this snippet on 
-  a different domain (like `http://localhost:5000`), it will fail.
+  IMPORTANT: The domain used when activating the license is permanently locked to that key.
+  Make sure you are on the correct domain before activating.
 -->
 
-<!-- S22 Plugin Container -->
-<div id="s22-plugin-container" data-license="YOUR_LICENSE_KEY_HERE"></div>
-
-<!-- Load the Master Widget Script -->
-<script src="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/widget.js"></script>
-
-<!-- 
-  WHAT THIS SCRIPT DOES AUTOMATICALLY:
-  1. Extracts the license key from the data-license attribute.
-  2. Sends an API request to /api/validate-license to check if the key is active, paid, and valid for this domain.
-  3. If valid, it checks the membership plan (Basic or Premium).
-  4. It displays an interactive UI with 2 or 4 layout options depending on the plan.
-  5. When a user selects a layout, it fetches the dynamic UI from /api/layout-data and renders the specific layout.
--->
-
-
-<!-- ==========================================
-  ALTERNATIVE: CUSTOM MANUAL FETCH SCRIPT
-  (If you prefer not to use the widget.js file)
-========================================== -->
-<!--
-<div id="custom-layout-container"></div>
+<!-- S22 Widget -->
 <script>
-  const LICENSE_KEY = "YOUR_LICENSE_KEY_HERE";
-  const SELECTED_LAYOUT = "layout_1"; // Change to layout_2, layout_3, etc.
-  
-  async function loadLayoutManually() {
-    const domain = window.location.origin;
-    
-    // 1. Validate License
-    const validationRes = await fetch('${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/validate-license', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ license_key: LICENSE_KEY, domain: domain })
-    });
-    const validation = await validationRes.json();
-    
-    if (!validation.success && !validation.valid) {
-      console.error("License Error:", validation.reason);
-      return;
-    }
-    
-    // 2. Fetch Selected Layout Data
-    const layoutRes = await fetch('${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/layout-data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ license_key: LICENSE_KEY, domain: domain, layout_id: SELECTED_LAYOUT })
-    });
-    
-    const layout = await layoutRes.json();
-    
-    // 3. Render Layout UI
-    if (layout.success) {
-      document.getElementById('custom-layout-container').innerHTML = `
-        <div style="padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-          <h2>${layout.data.name}</h2>
-          <p>Theme: ${layout.data.theme}</p>
-          <pre>${JSON.stringify(layout.data.components, null, 2)}</pre>
-        </div>
-      `;
-    } else {
-      console.error("Layout Fetch Error:", layout.reason);
-    }
-  }
-  
-  loadLayoutManually();
+  window.S22Config = {
+    licenseKey: "YOUR_LICENSE_KEY_HERE"
+  };
 </script>
--->
-
-
-
-// Live Preview Integration
-<iframe
-  src={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/embed/layout/${selectedLayout?.id}?submission_id=${submissionId}`}
-  className="w-full h-full border-none"
-  title="Live Preview"
-/>
-
+<script src="https://ecommerce-project-omega-virid.vercel.app/widget.js" defer></script>

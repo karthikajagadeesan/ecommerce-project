@@ -1,4 +1,5 @@
 import Sidebar from "@/components/sidebar/sidebar";
+import MobileNavbar from "@/components/sidebar/mobile-navbar";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function MainLayout({
@@ -23,10 +24,11 @@ export default async function MainLayout({
   userName = userName || "User";
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="flex flex-col md:flex-row min-h-screen bg-background text-foreground transition-colors duration-300 relative">
+      <MobileNavbar userName={userName} />
       <Sidebar userName={userName} />
-      <main className="flex-1 overflow-y-auto px-4 md:px-0">
-        <div className="mx-auto h-full max-w-[1400px]">
+      <main className="flex-1 overflow-y-auto  md:mt-2 md:m-2 md:ml-0 px-4 md:px-3 py-4 md:rounded-lg md:border md:border-ui-muted h-[calc(100vh-64px)] md:h-[calc(100vh-16px)] bg-card overflow-x-hidden">
+        <div className="mx-auto h-full max-w-full">
           {children}
         </div>
       </main>

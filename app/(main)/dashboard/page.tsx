@@ -7,7 +7,7 @@ import { LoadingState } from '@/components/loading-state';
 export default async function DashboardPage() {
   return (
     <main className="main-page">
-      <Suspense fallback={<LoadingState />}>
+      <Suspense fallback={<LoadingState message="Loading Dashboard..." />}>
         <RoleGateway
           superadmin={<SuperadminDashboard />}
           user={<UserDashboard />}

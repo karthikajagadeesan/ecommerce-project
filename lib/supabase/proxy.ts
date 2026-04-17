@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from './server'
 
 const AUTH_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password']
-const PROTECTED_PATHS = ['/dashboard', '/membership', '/payment', '/license']
+const PROTECTED_PATHS = ['/dashboard', '/upgrade-membership', '/payment', '/license']
 
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
@@ -65,7 +65,7 @@ export async function updateSession(request: NextRequest) {
             if (hasMembership) {
                 return NextResponse.redirect(new URL('/dashboard', request.url))
             } else {
-                return NextResponse.redirect(new URL('/membership', request.url))
+                return NextResponse.redirect(new URL('/upgrade-membership', request.url))
             }
         }
 
@@ -73,12 +73,12 @@ export async function updateSession(request: NextRequest) {
         if (isProtectedPath) {
             // Block /payment if no plan selected
             if (pathname === '/payment' && !hasMembership) {
-                return NextResponse.redirect(new URL('/membership', request.url))
+                return NextResponse.redirect(new URL('/upgrade-membership', request.url))
             }
 
             // Block /dashboard and /license if no active plan
             if ((pathname === '/dashboard' || pathname === '/license') && !hasMembership) {
-                return NextResponse.redirect(new URL('/membership', request.url))
+                return NextResponse.redirect(new URL('/upgrade-membership', request.url))
             }
         }
     } else {

@@ -15,27 +15,33 @@ export interface Database {
           auth_user_id: string
           name: string | null
           email: string | null
+          phone_number: string | null
           status: string | null
           created_at: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           id?: number
           auth_user_id: string
           name?: string | null
           email?: string | null
+          phone_number?: string | null
           status?: string | null
           created_at?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           id?: number
           auth_user_id?: string
           name?: string | null
           email?: string | null
+          phone_number?: string | null
           status?: string | null
           created_at?: string
           updated_at?: string
+          user_id?: string | null
         }
       }
       membership: {
@@ -49,6 +55,7 @@ export interface Database {
           features: Json | null
           is_active: boolean
           plan_limit: number
+          site_access: number
           created_at: string
           updated_at: string
         }
@@ -62,6 +69,7 @@ export interface Database {
           features?: Json | null
           is_active?: boolean
           plan_limit?: number
+          site_access?: number
           created_at?: string
           updated_at?: string
         }
@@ -75,6 +83,7 @@ export interface Database {
           features?: Json | null
           is_active?: boolean
           plan_limit?: number
+          site_access?: number
           created_at?: string
           updated_at?: string
         }
@@ -82,7 +91,7 @@ export interface Database {
       user_membership: {
         Row: {
           id: number
-          profile_id: number
+          user_id: number
           membership_id: number | null
           plan_name: string | null
           price: number | null
@@ -92,12 +101,13 @@ export interface Database {
           status: string | null
           membership_json: Json | null
           plan_limit: number
+          name: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: number
-          profile_id: number
+          user_id: number
           membership_id?: number | null
           plan_name?: string | null
           price?: number | null
@@ -107,12 +117,13 @@ export interface Database {
           status?: string | null
           membership_json?: Json | null
           plan_limit?: number
+          name?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: number
-          profile_id?: number
+          user_id?: number
           membership_id?: number | null
           plan_name?: string | null
           price?: number | null
@@ -122,6 +133,7 @@ export interface Database {
           status?: string | null
           membership_json?: Json | null
           plan_limit?: number
+          name?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -140,6 +152,7 @@ export interface Database {
           user_id: number | null
           plan: string | null
           displayed_once: boolean
+          name: string | null
         }
         Insert: {
           id?: number
@@ -154,6 +167,7 @@ export interface Database {
           user_id?: number | null
           plan?: string | null
           displayed_once?: boolean
+          name?: string | null
         }
         Update: {
           id?: number
@@ -168,6 +182,7 @@ export interface Database {
           user_id?: number | null
           plan?: string | null
           displayed_once?: boolean
+          name?: string | null
         }
       }
       api_usage: {
@@ -238,6 +253,79 @@ export interface Database {
           appearance?: Json | null
           videos?: Json | null
           license_key?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      payments: {
+        Row: {
+          id: number
+          user_id: number | null
+          domain_url: string | null
+          plan_name: string | null
+          price: number | null
+          amount: number | null
+          validity_days: number | null
+          payment_status: 'pending' | 'completed' | 'failed'
+          name: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          user_id?: number | null
+          domain_url?: string | null
+          plan_name?: string | null
+          price?: number | null
+          amount?: number | null
+          validity_days?: number | null
+          payment_status?: 'pending' | 'completed' | 'failed'
+          name?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          user_id?: number | null
+          domain_url?: string | null
+          plan_name?: string | null
+          price?: number | null
+          amount?: number | null
+          validity_days?: number | null
+          payment_status?: 'pending' | 'completed' | 'failed'
+          name?: string | null
+          created_at?: string
+        }
+      }
+      website_access: {
+        Row: {
+          id: number
+          user_id: number | null
+          plan_name: string
+          domain_url: string
+          site_name: string | null
+          name: string | null
+          status: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          user_id?: number | null
+          plan_name: string
+          domain_url: string
+          site_name?: string | null
+          name?: string | null
+          status?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          user_id?: number | null
+          plan_name?: string
+          domain_url?: string
+          site_name?: string | null
+          name?: string | null
+          status?: string | null
           created_at?: string
           updated_at?: string
         }

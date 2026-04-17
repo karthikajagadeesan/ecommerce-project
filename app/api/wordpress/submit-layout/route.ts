@@ -17,6 +17,10 @@ export async function POST(req: NextRequest) {
   try {
     const { layout_id, image_metadata, appearance, videos, license_key } = await req.json();
 
+    // console.log('--- Layout Submission Request ---');
+    // console.log('Layout ID:', layout_id);
+    // console.log('License Key:', license_key);
+
     if (!layout_id || !image_metadata || !license_key) {
       return NextResponse.json({ 
         success: false, 
@@ -193,4 +197,23 @@ export async function POST(req: NextRequest) {
       message: 'An internal server error occurred' 
     }, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
   }
+}
+
+export async function GET(req: NextRequest) {
+  // const { searchParams } = new URL(req.url);
+  // const license_key = searchParams.get('license_key');
+  // const layout_id = searchParams.get('layout_id');
+
+  // console.log('--- GET Layout Submission Attempt ---');
+  // console.log('License Key:', license_key);
+  // console.log('Layout ID:', layout_id);
+
+  return NextResponse.json({ 
+    success: false, 
+    message: 'Method Not Allowed. Please use POST with JSON body containing license_key, layout_id, and image_metadata.',
+    // received: { license_key, layout_id }
+  }, { 
+    status: 405,
+    headers: { 'Access-Control-Allow-Origin': '*' }
+  });
 }

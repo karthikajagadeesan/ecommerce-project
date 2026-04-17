@@ -18,8 +18,8 @@ export const LayoutMaster1: React.FC<LayoutProps> = ({ entries }) => {
   const description = entries[0]?.s_cont || 'Real stories from real users. Experience the difference today.';
 
   return (
-    <section className="s22_master py-10 px-10">
-      <div className="sec_title px-6">
+    <section className="s22_master py-10 px-6 md:px-10">
+      <div className="sec_title px-0 md:px-6 text-center">
         <h1 className="plugin-title">
           {title}
         </h1>

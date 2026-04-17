@@ -18,6 +18,10 @@ export async function POST(req: NextRequest) {
   try {
     const { license_key, domain } = await req.json();
 
+    // console.log('--- License Validation Request ---');
+    // console.log('License Key:', license_key);
+    // console.log('Domain:', domain);
+
     if (!license_key || !domain) {
       return NextResponse.json({ 
         success: false,
@@ -168,10 +172,19 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // const { searchParams } = new URL(req.url);
+  // const license_key = searchParams.get('license_key');
+  // const domain = searchParams.get('domain');
+
+  // console.log('--- GET License Validation Attempt ---');
+  // console.log('License Key:', license_key);
+  // console.log('Domain:', domain);
+
   return NextResponse.json({ 
     success: false, 
-    reason: 'Method Not Allowed. Please use POST with JSON body containing license_key and domain.' 
+    reason: 'Method Not Allowed. Please use POST with JSON body containing license_key and domain.',
+    // received: { license_key, domain }
   }, { 
     status: 405,
     headers: { 'Access-Control-Allow-Origin': '*' }

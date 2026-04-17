@@ -69,10 +69,10 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full border-2 border-primary/10 shadow-xl bg-card/50 backdrop-blur-sm">
+    <Card className="w-full  border border-ui-border-shade shadow-xl  bg-primary/5 -translate-y-2 ">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-black text-center tracking-tighter uppercase">Welcome Back</CardTitle>
-        <CardDescription className="text-center font-medium">
+        <CardTitle className="text-xl font-semibold text-center tracking-tighter uppercase">Welcome Back</CardTitle>
+        <CardDescription className="text-md font-medium text-center">
           Enter your details below to log in to your account.
         </CardDescription>
       </CardHeader>
@@ -84,9 +84,9 @@ export function LoginForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-widest opacity-70">Email Address</FormLabel>
+                  <FormLabel className="text-sm font-medium ">Email Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} className="h-12 bg-background/50 border-2" />
+                    <Input placeholder="name@example.com" {...field} className="h-10 mt-1 bg-background/50 focus-visible:ring-ui-border-shade " />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -98,7 +98,7 @@ export function LoginForm() {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between">
-                    <FormLabel className="text-xs font-bold uppercase tracking-widest opacity-70">Password</FormLabel>
+                    <FormLabel className="text-sm font-medium">Password</FormLabel>
                     <Link
                       href="/forgot-password"
                       className="text-xs font-bold text-primary hover:underline underline-offset-4"
@@ -112,7 +112,7 @@ export function LoginForm() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         {...field}
-                         className="h-12 bg-background/50 border-2 pr-12"
+                         className="h-10 bg-background/50 focus-visible:ring-ui-border-shade  pr-12"
                       />
                       <Button
                         type="button"
@@ -133,16 +133,20 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-             <Button type="submit" className="w-full h-12 text-md font-black uppercase tracking-[0.1em] rounded-full shadow-lg transition-all active:scale-95" disabled={loginMutation.isPending}>
-              {loginMutation.isPending ? (
-                <>
-                  Logging in...
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                </>
-              ) : (
-                'Login'
-              )}
-            </Button>
+            <div className="flex justify-center pt-2">
+              <Button 
+                type="submit" 
+                className="w-45 h-10 text-md font-medium  rounded-xl shadow-lg transition-all flex items-center justify-center"
+                disabled={loginMutation.isPending}
+              >
+                <span className="relative">
+                  {loginMutation.isPending ? 'Logging in...' : 'Login'}
+                  {loginMutation.isPending && (
+                    <Loader2 className="absolute -right-7 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
+                  )}
+                </span>
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

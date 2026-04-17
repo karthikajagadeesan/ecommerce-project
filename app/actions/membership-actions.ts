@@ -30,56 +30,32 @@ export async function selectPlan(planId: number) {
     // 2. Find profile by auth_user_id (UUID)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, name')
       .eq('auth_user_id', user.id)
       .single() as any;
 
     if (profile) {
+      // Record a "pending" payment entry to track plan selection
       const adminAuth = createAdminClient();
-      
-      // 1. Manually check for existing membership to avoid 'ON CONFLICT' syntax errors
-      const { data: existing } = await (adminAuth.from('user_membership') as any)
-        .select('id')
-        .eq('profile_id', profile.id)
-        .single();
-
-      const membershipData = {
-        profile_id: profile.id,
-        membership_id: membershipPlan.id,
+      const { error: paymentError } = await (adminAuth.from('payments') as any).insert({
+        user_id: profile.id,
         plan_name: membershipPlan.plan_name,
         price: membershipPlan.price,
         validity_days: membershipPlan.validity_days,
-        plan_limit: membershipPlan.plan_limit,
-        membership_json: membershipPlan,
-        status: 'active',
-        start_date: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+        payment_status: 'pending',
+        name: profile.name
+      });
 
-      let saveError;
-      if (existing) {
-        // 2. Perform Update
-        const { error } = await (adminAuth.from('user_membership') as any)
-          .update(membershipData)
-          .eq('id', existing.id);
-        saveError = error;
-      } else {
-        // 3. Perform Insert
-        const { error } = await (adminAuth.from('user_membership') as any)
-          .insert(membershipData);
-        saveError = error;
-      }
-
-      if (saveError) {
-        console.error("User Membership Save Error:", saveError);
-        throw new Error(`Failed to save user membership: ${saveError.message}`);
+      if (paymentError) {
+        console.error("Payment Record Error:", paymentError);
+        throw new Error(`Failed to record plan selection: ${paymentError.message}`);
       }
     } else {
       console.error("Profile not found for user:", user.id);
       throw new Error("User profile not found. Please re-login.");
     }
 
-    // 4. Update Auth metadata
+    // 4. Update Auth metadata (Keep this as it helps with UI state)
     await supabase.auth.updateUser({
       data: {
         membership_selected: true,
@@ -92,10 +68,88 @@ export async function selectPlan(planId: number) {
     cookieStore.set({ name: 's22_plan', value: membershipPlan.plan_name, path: '/', maxAge: 60 * 60 * 24 });
     cookieStore.set({ name: 's22_membership', value: 'true', path: '/', maxAge: 60 * 60 * 24 });
 
-    revalidatePath('/membership')
+    revalidatePath('/upgrade-membership')
+    revalidatePath('/payment')
     return { success: true, redirectTo: '/payment' }
   } catch (err: any) {
     console.error("Server Action Exception:", err);
     return { error: err.message || 'An unexpected error occurred' }
+  }
+}
+
+export async function getMembershipPlans() {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('membership')
+      .select('*')
+      .eq('is_active', true)
+      .order('price', { ascending: true })
+
+    if (error) throw error
+    return { data: data as Tables<'membership'>[] }
+  } catch (err: any) {
+    console.error('Error fetching membership plans:', err)
+    return { error: err.message || 'Failed to fetch membership plans' }
+  }
+}
+
+export async function getCurrentUserMembership() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Not authenticated' }
+
+    const { data: profile, error: profileError } = await (supabase
+      .from('profiles')
+      .select('id')
+      .eq('auth_user_id', user.id)
+      .single() as any)
+
+    if (profileError || !profile) return { error: 'Profile not found' }
+
+    const { data: membership, error: membershipError } = await supabase
+      .from('user_membership')
+      .select('*')
+      .eq('user_id', profile.id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (membershipError) throw membershipError
+
+    return { data: membership as Tables<'user_membership'> | null }
+  } catch (err: any) {
+    console.error('Error fetching current membership:', err)
+    return { error: err.message || 'Failed to fetch current membership' }
+  }
+}
+
+export async function getUserMembershipHistory() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Not authenticated' }
+
+    const { data: profile } = await (supabase
+      .from('profiles')
+      .select('id')
+      .eq('auth_user_id', user.id)
+      .single() as any)
+
+    if (!profile) return { error: 'Profile not found' }
+
+    const { data, error } = await supabase
+      .from('user_membership')
+      .select('*')
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: true })
+
+    if (error) throw error
+    return { data: data as Tables<'user_membership'>[] }
+  } catch (err: any) {
+    console.error('Error fetching membership history:', err)
+    return { error: err.message || 'Failed to fetch membership history' }
   }
 }

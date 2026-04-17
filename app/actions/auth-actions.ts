@@ -12,9 +12,11 @@ const loginSchema = z.object({
 })
 
 const signupSchema = z.object({
-  name: z.string().min(2),
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email(),
   password: z.string().min(6),
+  phoneNumber: z.string().min(7, 'Enter a valid phone number'),
 })
 
 export async function signIn(
@@ -45,8 +47,8 @@ export async function signIn(
     const { data: membership } = profile ? await supabase
       .from('user_membership')
       .select('*')
-      .eq('profile_id', profile.id)
-      .single() as any : { data: null };
+      .eq('user_id', profile.id)
+      .maybeSingle() as any : { data: null };
 
     revalidatePath('/', 'layout')
     
@@ -71,12 +73,15 @@ export async function signUp(
       return { error: 'Invalid input' }
     }
 
+    const fullName = `${validation.data.firstName} ${validation.data.lastName}`.trim()
+
     const { data, error } = await supabase.auth.signUp({
       email: validation.data.email,
       password: validation.data.password,
       options: {
         data: {
-          full_name: validation.data.name,
+          full_name: fullName,
+          phone_number: validation.data.phoneNumber,
         },
       },
     })
@@ -94,8 +99,10 @@ export async function signUp(
       const adminAuth = createAdminClient();
       const { error: profileError } = await (adminAuth.from('profiles') as any).upsert({
         auth_user_id: user.id,
-        name: validation.data.name,
+        user_id: user.id, // Populating new user_id column
+        name: fullName,
         email: validation.data.email,
+        phone_number: validation.data.phoneNumber,
         status: 'active'
       }, { onConflict: 'auth_user_id' });
       if (profileError) {

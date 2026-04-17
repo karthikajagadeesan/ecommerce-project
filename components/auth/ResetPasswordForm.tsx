@@ -78,7 +78,7 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full  border border-ui-border-shade shadow-xl  bg-primary/5 -translate-y-2 ">
       <CardHeader>
         <CardTitle className="text-2xl">Reset Password</CardTitle>
         <CardDescription>
@@ -93,13 +93,13 @@ export function ResetPasswordForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password</FormLabel>
+                  <FormLabel className='text-sm font-medium'>New Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
-                        className="pr-10"
+                        className="h-10 bg-background/50 focus-visible:ring-ui-border-shade  pr-12"
                         {...field}
                       />
                       <Button
@@ -126,13 +126,13 @@ export function ResetPasswordForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel className='text-sm font-medium'>Confirm Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type={showConfirmPassword ? 'text' : 'password'}
                         placeholder="••••••••"
-                        className="pr-10"
+                       className="h-10 bg-background/50 focus-visible:ring-ui-border-shade  pr-12"
                         {...field}
                       />
                       <Button

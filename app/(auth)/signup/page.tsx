@@ -9,7 +9,7 @@ import { redirectIfAuthenticated } from '@/lib/supabase/proxy'
 export default async function SignupPage() {
   await redirectIfAuthenticated()
   return (
-    <div className="container relative flex h-screen flex-col items-center justify-center lg:max-w-none lg:grid-cols-1 lg:px-0 bg-muted">
+    <div className="container relative flex h-screen flex-col items-center justify-center lg:max-w-none lg:grid-cols-1 bg-background lg:px-0">
       <Suspense fallback={<LoadingState />}>
         <RoleGateway 
           user={<UserSignup />}

@@ -47,13 +47,13 @@ export const LayoutMaster2: React.FC<LayoutProps> = ({ entries }) => {
   return (
     <section 
       className={cn(
-        "s22_master2 py-15 px-6 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12 transition-all duration-700",
+        "s22_master2 py-10 md:py-15 px-6 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-12 transition-all duration-700",
         isRightClickNav && "opacity-90"
       )}
       onContextMenu={onContextMenu}
     >
-      <div className="sec_title flex-shrink-0 w-[450px]">
-        <h1 className="plugin-title">
+      <div className="sec_title flex-shrink-0 w-full md:w-[450px] text-center md:text-left">
+        <h1 className="plugin-title text-[28px] md:text-[32px] leading-tight">
           {entries[0].s_title.includes('.') 
             ? entries[0].s_title.split('.').map((part, i, arr) => (
                 <React.Fragment key={i}>
@@ -64,7 +64,7 @@ export const LayoutMaster2: React.FC<LayoutProps> = ({ entries }) => {
             : entries[0].s_title
           }
         </h1>
-        <p className="plugin-subtitle mt-4 text-lg max-w-[350px]">
+        <p className="plugin-subtitle mt-4 text-base md:text-lg max-w-[350px] mx-auto md:mx-0">
           {entries[0].s_cont}
         </p>
       </div>
